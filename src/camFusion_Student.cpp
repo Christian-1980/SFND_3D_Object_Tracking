@@ -162,7 +162,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     // A function to match bounding boxes between 2 frames
 
     // Store the counts for the matches for each combination in a matrix
-    cv::Mat match_table = cv::Mat::zeros(prevFrame.boundingBoxes.size(), currFrame.boundingBoxes.size(), CV_32S);
+    cv::Mat matching_matrix = cv::Mat::zeros(prevFrame.boundingBoxes.size(), currFrame.boundingBoxes.size(), CV_32S);
 
     // Now loop over the frames and check the matches plus put the data; queryIdx is the previous, tranIdx the current indices of the 
     // keypoints from the DMtach Matrix
@@ -174,11 +174,28 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             if (prev_bbox.roi.contains(prev_keypoint.pt)){
                 for (const auto &curr_bbox : currFrame.boundingBoxes){
                     if (curr_bbox.roi.contains(curr_keypoint.pt)){
-                        match_table.at<int>(prev_bbox.boxID, curr_bbox.boxID) += 1;
+                        matching_matrix.at<int>(prev_bbox.boxID, curr_bbox.boxID) += 1;
                     }
                 }
             }
         }
+    }
+    
+    // loop over the filled matrix, rows and find the max count in second loop over cols
+    for (int i = 0; i < matching_matrix.rows; i++){
+        
+        int max_count = 0;
+        int max_id = -1;
 
+        for (int j = 0; j < matching_matrix.cols; j++){
+            if (matching_matrix.at<int>(i, j) > max_count && matching_matrix.at<int>(i, j) > 0){
+                max_count = matching_matrix.at<int>(i, j);
+                max_id = j;
+            }
+        }
 
+        if (max_id != -1){
+            bbBestMatches.emplace(i, max_id);
+        }
+    }
 }
