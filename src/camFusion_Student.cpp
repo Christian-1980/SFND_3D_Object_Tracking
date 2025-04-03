@@ -164,5 +164,21 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     // Store the counts for the matches for each combination in a matrix
     cv::Mat match_table = cv::Mat::zeros(prevFrame.boundingBoxes.size(), currFrame.boundingBoxes.size(), CV_32S);
 
-    
+    // Now loop over the frames and check the matches plus put the data; queryIdx is the previous, tranIdx the current indices of the 
+    // keypoints from the DMtach Matrix
+    for (const auto &match : matches){
+        const cv::KeyPoint &prev_keypoint = prevFrame.keypoints[match.queryIdx];
+        const cv::KeyPoint &curr_keypoint = currFrame.keypoints[match.trainIdx];
+
+        for (const auto &prev_bbox : prevFrame.boundingBoxes){
+            if (prev_bbox.roi.contains(prev_keypoint.pt)){
+                for (const auto &curr_bbox : currFrame.boundingBoxes){
+                    if (curr_bbox.roi.contains(curr_keypoint.pt)){
+                        match_table.at<int>(prev_bbox.boxID, curr_bbox.boxID) += 1;
+                    }
+                }
+            }
+        }
+
+
 }
