@@ -223,10 +223,46 @@ void computeTTCCamera(const std::vector<cv::KeyPoint>& kptsPrev,
 }
             
 
-void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
-                     std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
-{
-    // ...
+void computeTTCLidar(const std::vector<LidarPoint>& lidarPointsPrev,
+    const std::vector<LidarPoint>& lidarPointsCurr,
+    double frameRate, double& TTC) {
+    
+    double lane_width = 2.5; // European width
+    
+    // vector to store the distances x
+    std::vector<double> x_values_prev, x_values_curr;
+
+    // A lambda function filter_and_extract_x is used to encapsulate 
+    // the common logic of filtering and extracting x-values
+    auto filter_and_extract_x = [&](const std::vector<LidarPoint>& points, std::vector<double>& x_values) {
+        for (const auto& point : points) {
+            if (std::abs(point.y) <= lane_width / 2.0) {
+                x_values.push_back(point.x);
+            }
+        }
+        std::sort(x_values.begin(), x_values.end());
+    };
+
+    filter_and_extract_x(lidarPointsPrev, x_values_prev);
+    filter_and_extract_x(lidarPointsCurr, x_values_curr);
+
+    if (x_values_prev.empty() || x_values_curr.empty()) {
+        TTC = NAN;
+        std::cout << "TTC Lidar: NAN (empty point cloud)" << std::endl;
+        return;
+    }
+
+    double x_median_prev = x_values_prev[x_values_prev.size() / 2];
+    double x_median_curr = x_values_curr[x_values_curr.size() / 2];
+
+    if (x_median_prev == x_median_curr) {
+        TTC = NAN;
+        std::cout << "TTC Lidar: NAN (medians are equal)" << std::endl;
+        return;
+    }
+
+    TTC = x_median_curr * (1.0 / frameRate) / (x_median_prev - x_median_curr);
+    std::cout << "TTC Lidar: " << TTC << " s" << std::endl;
 }
 
 
