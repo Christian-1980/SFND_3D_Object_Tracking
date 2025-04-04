@@ -224,8 +224,8 @@ void computeTTCCamera(const std::vector<cv::KeyPoint>& kptsPrev,
             
 
 void computeTTCLidar(const std::vector<LidarPoint>& lidarPointsPrev,
-    const std::vector<LidarPoint>& lidarPointsCurr,
-    double frameRate, double& TTC) {
+                     const std::vector<LidarPoint>& lidarPointsCurr,
+                     double frameRate, double& TTC) {
     
     double lane_width = 2.5; // European width
     
