@@ -147,10 +147,12 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 
     // Find the mean distance between all matched keypoints
     for(auto it = kptMatches.begin(); it != kptMatches.end(); ++it) {
+        // internal keypoints
         cv::KeyPoint kpCurr = kptsCurr.at(it->trainIdx);
         cv::KeyPoint kpPrev = kptsPrev.at(it->queryIdx);
 
         if(boundingBox.roi.contains(kpCurr.pt)) {
+            // store it to matches
             matches.push_back(*it);
             sum_distance += cv::norm(kpCurr.pt - kpPrev.pt);
         }
@@ -166,6 +168,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
         cv::KeyPoint kpPrev = kptsPrev.at(it->queryIdx);
 
         if(cv::norm(kpCurr.pt - kpPrev.pt) < threshold) {
+            // associates as a member of boundigBox
             boundingBox.kptMatches.push_back(*it);
         }
     }
@@ -212,20 +215,20 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     }
     
     // loop over the filled matrix, rows and find the max count in second loop over cols
-    for (int i = 0; i < matching_matrix.rows; i++){
-        
+    for (int i = 0; i < matching_matrix.rows; ++i) {
         int max_count = 0;
         int max_id = -1;
 
-        for (int j = 0; j < matching_matrix.cols; j++){
-            if (matching_matrix.at<int>(i, j) > max_count && matching_matrix.at<int>(i, j) > 0){
-                max_count = matching_matrix.at<int>(i, j);
+        for (int j = 0; j < matching_matrix.cols; ++j) {
+            int current_value = matching_matrix.at<int>(i, j);
+            if (current_value > max_count && current_value > 0) {
+                max_count = current_value;
                 max_id = j;
             }
         }
 
-        if (max_id != -1){
-            bbBestMatches.emplace(i, max_id);
+        if (max_id != -1) {
+            bbBestMatches[i] = max_id;
         }
     }
 }
