@@ -176,9 +176,9 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 
 
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images
-void computeTTCCamera(const std::vector<cv::KeyPoint>& kptsPrev,
-                      const std::vector<cv::KeyPoint>& kptsCurr,
-                      const std::vector<cv::DMatch>& kptMatches,
+void computeTTCCamera(std::vector<cv::KeyPoint>& kptsPrev,
+                      std::vector<cv::KeyPoint>& kptsCurr,
+                      std::vector<cv::DMatch>& kptMatches,
                       double frameRate, double& TTC, cv::Mat* visImg) {
         
         // vectore to store the ratio of distances for eval
@@ -223,9 +223,8 @@ void computeTTCCamera(const std::vector<cv::KeyPoint>& kptsPrev,
 }
             
 
-void computeTTCLidar(const std::vector<LidarPoint>& lidarPointsPrev,
-                     const std::vector<LidarPoint>& lidarPointsCurr,
-                     double frameRate, double& TTC) {
+void computeTTCLidar(std::vector<LidarPoint>& lidarPointsPrev, std::vector<LidarPoint>& lidarPointsCurr, double frameRate, double& TTC) 
+{
     
     double lane_width = 2.5; // European width
     
