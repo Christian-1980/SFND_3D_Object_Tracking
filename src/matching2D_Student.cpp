@@ -26,7 +26,7 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
             normType = cv::NORM_HAMMING;
         }
 
-        matcher = cv::BFMatcher::create(normType, true);
+        matcher = cv::BFMatcher::create(normType, false);
     }
 
     else if (matcherType.compare("MAT_FLANN") == 0)
