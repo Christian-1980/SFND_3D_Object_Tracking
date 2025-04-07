@@ -174,29 +174,27 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
     }
 }
 
-
 // Compute time-to-collision (TTC) based on keypoint correspondences in successive images
-void computeTTCCamera(std::vector<cv::KeyPoint>& kptsPrev,
-                      std::vector<cv::KeyPoint>& kptsCurr,
-                      std::vector<cv::DMatch>& kptMatches,
-                      double frameRate, double& TTC, cv::Mat* visImg) {
-        
+void computeTTCCamera(std::vector<cv::KeyPoint>& kptsPrev, std::vector<cv::KeyPoint>& kptsCurr, std::vector<cv::DMatch> kptMatches, double frameRate, double& TTC) 
+{        
         // vectore to store the ratio of distances for eval
         std::vector<double> ratio_distances;
 
         double dist_min = 100.0;
         
-        for (size_t i = 0; i < kptMatches.size(); ++i) {
-            const cv::KeyPoint& prev_keypoint1 = kptsPrev[kptMatches[i].queryIdx];
-            const cv::KeyPoint& curr_keypoint1 = kptsCurr[kptMatches[i].trainIdx];
+        for (auto it1 = kptMatches.begin(); it1 != kptMatches.end() - 1; ++it1) {
+
+            const cv::KeyPoint &prev_keypoint1 = kptsPrev[it1 -> queryIdx];
+            const cv::KeyPoint &curr_keypoint1 = kptsCurr[it1 -> trainIdx];
             
-            for (size_t j = i + 1; j < kptMatches.size(); ++j) {
-                const cv::KeyPoint& prev_keypoint2 = kptsPrev[kptMatches[j].queryIdx];
-                const cv::KeyPoint& curr_keypoint2 = kptsCurr[kptMatches[j].trainIdx];
+            for (auto it2 = kptMatches.begin() + 1; it2 != kptMatches.end(); ++it2) {
+
+                const cv::KeyPoint &prev_keypoint2 = kptsPrev[it2 -> queryIdx];
+                const cv::KeyPoint &curr_keypoint2 = kptsCurr[it2 -> trainIdx];
                 
                 double prev_distance = cv::norm(prev_keypoint1.pt - prev_keypoint2.pt);
                 double curr_distance = cv::norm(curr_keypoint1.pt - curr_keypoint2.pt);
-                
+
                 if (curr_distance > std::numeric_limits<double>::epsilon() && prev_distance >= dist_min) {
                     ratio_distances.push_back(curr_distance / prev_distance);
                 }
@@ -205,11 +203,15 @@ void computeTTCCamera(std::vector<cv::KeyPoint>& kptsPrev,
             
         if (ratio_distances.empty()) {
             TTC = NAN;
+            std::cout << "TTC Camera: NAN (medians are equal)" << std::endl;
             return;
         }
-            
+        
+        // Trick: sort the vector then find the median by middle index
         std::sort(ratio_distances.begin(), ratio_distances.end());
-        size_t median_index = ratio_distances.size() / 2;
+        long median_index = floor(ratio_distances.size() / 2);
+
+        //std::cout << "Sorted Vector: " << ratio_distances.size() << std::endl;
         double median_distance_ratio;
             
         if (ratio_distances.size() % 2 == 0) {
@@ -217,9 +219,10 @@ void computeTTCCamera(std::vector<cv::KeyPoint>& kptsPrev,
         } else {
             median_distance_ratio = ratio_distances[median_index];
         }
+        // std::cout << "Median Ratio: "<< median_distance_ratio << std::endl;
             
         TTC = (-1.0 / frameRate) / (1 - median_distance_ratio);
-        std::cout << "TTC Camera: " << TTC << " s" << std::endl;
+        //std::cout << "TTC Camera: " << TTC << " s" << std::endl;
 }
             
 
@@ -261,7 +264,7 @@ void computeTTCLidar(std::vector<LidarPoint>& lidarPointsPrev, std::vector<Lidar
     }
 
     TTC = x_median_curr * (1.0 / frameRate) / (x_median_prev - x_median_curr);
-    std::cout << "TTC Lidar: " << TTC << " s" << std::endl;
+    //std::cout << "TTC Lidar: " << TTC << " s" << std::endl;
 }
 
 
