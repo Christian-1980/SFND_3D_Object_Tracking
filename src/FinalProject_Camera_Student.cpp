@@ -39,8 +39,8 @@ int main(int argc, const char *argv[])
     bool flag_all_combinations = false; // to process all above Detector/Descriptor combinations
 
     // Matching Choice:
-    string matcherType = "MAT_FLANN";        // -> MAT_BF, MAT_FLANN
-    string matchSelectorType = "SEL_KNN";       // -> SEL_NN, SEL_KNN
+    string matcherType = "MAT_BF";        // -> MAT_BF, MAT_FLANN
+    string matchSelectorType = "SEL_NN";       // -> SEL_NN, SEL_KNN
     
 
     // data location
@@ -158,7 +158,7 @@ int main(int argc, const char *argv[])
                         }
 
                         //// EOF STUDENT ASSIGNMENT
-                        // cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
+                        // //cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
                         
                         /* DETECT & CLASSIFY OBJECTS */
 
@@ -167,7 +167,7 @@ int main(int argc, const char *argv[])
                         detectObjects((dataBuffer.end() - 1)->cameraImg, (dataBuffer.end() - 1)->boundingBoxes, confThreshold, nmsThreshold,
                                     yoloBasePath, yoloClassesFile, yoloModelConfiguration, yoloModelWeights, bVis);
 
-                        cout << "#2 : DETECT & CLASSIFY OBJECTS done" << endl;
+                        //cout << "#2 : DETECT & CLASSIFY OBJECTS done" << endl;
 
                         /* CROP LIDAR POINTS */
 
@@ -182,7 +182,7 @@ int main(int argc, const char *argv[])
                     
                         (dataBuffer.end() - 1)->lidarPoints = lidarPoints;
 
-                        cout << "#3 : CROP LIDAR POINTS done" << endl;
+                        //cout << "#3 : CROP LIDAR POINTS done" << endl;
 
                         /* CLUSTER LIDAR POINT CLOUD */
 
@@ -198,7 +198,7 @@ int main(int argc, const char *argv[])
                         }
                         bVis = false;
 
-                        cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
+                        //cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
 
                         /* DETECT IMAGE KEYPOINTS */
                         // cout << "Start processing dectetors: " << dectType << "." << endl;
@@ -279,7 +279,7 @@ int main(int argc, const char *argv[])
                         // push descriptors for current frame to end of data buffer
                         (dataBuffer.end() - 1)->descriptors = descriptors;
 
-                        // cout << "#3 : EXTRACT DESCRIPTORS done." << endl;
+                        // //cout << "#3 : EXTRACT DESCRIPTORS done." << endl;
                         if (dataBuffer.size() > 1) // wait until at least two images have been processed
                         {
                             /* MATCH KEYPOINT DESCRIPTORS */
@@ -308,21 +308,21 @@ int main(int argc, const char *argv[])
                             
                             matchTime = ((double)cv::getTickCount() - matchTime) / cv::getTickFrequency();
                             
-                            cout << "IMAGE_" << imgIndex << ",";
-                            cout << dectType << ",";
-                            cout << descType << ",";
-                            cout << keypoints.size() << ",";
-                            cout << matches.size() << ",";
-                            cout << 1000 * detectorTime / 1.0 << ",";
-                            cout << 1000 * descTime / 1.0 << ",";
-                            cout << 1000 * matchTime / 1.0 << ",";
-                            cout << (1000 * detectorTime / 1.0) + (1000 * descTime / 1.0) + (1000 * matchTime / 1.0)<< endl;
+                            // cout << "IMAGE_" << imgIndex << ",";
+                            // cout << dectType << ",";
+                            // cout << descType << ",";
+                            // cout << keypoints.size() << ",";
+                            // cout << matches.size() << ",";
+                            // cout << 1000 * detectorTime / 1.0 << ",";
+                            // cout << 1000 * descTime / 1.0 << ",";
+                            // cout << 1000 * matchTime / 1.0 << ",";
+                            // cout << (1000 * detectorTime / 1.0) + (1000 * descTime / 1.0) + (1000 * matchTime / 1.0)<< endl;
                             //// EOF STUDENT ASSIGNMENT
 
                             // store matches in current data frame
                             (dataBuffer.end() - 1)->kptMatches = matches;
                             
-                            cout << "#4 : MATCH KEYPOINT DESCRIPTORS done." << endl;
+                            //cout << "#4 : MATCH KEYPOINT DESCRIPTORS done." << endl;
 
                             // cout << "Finalized processing following combinatio: " << dectType << "/ " << selectedDescriptorType[i] << "/ " << matchDescriptorType << "/ " << matchSelectorType << endl;
                             // visualize matches between current and previous image
@@ -354,7 +354,7 @@ int main(int argc, const char *argv[])
                             // store matches in current data frame
                             (dataBuffer.end()-1)->bbMatches = bbBestMatches;
 
-                            cout << "#5 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
+                            //cout << "#5 : TRACK 3D OBJECT BOUNDING BOXES done" << endl;
 
 
                             /* COMPUTE TTC ON OBJECT IN FRONT */
@@ -394,10 +394,20 @@ int main(int argc, const char *argv[])
                                     //// TASK FP.4 -> compute time-to-collision based on camera (implement -> computeTTCCamera)
                                     double ttcCamera;
                                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);                    
-                                    //computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
+                                    computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
                                     //// EOF STUDENT ASSIGNMENT
 
-                                    bVis = true;
+                                    double diffTTC = std::abs(ttcLidar - ttcCamera);
+
+                                    cout << "IMAGE_" << imgIndex << ",";
+                                    cout << dectType << ",";
+                                    cout << descType << ",";
+                                    cout << ttcLidar<< ",";
+                                    cout << ttcCamera<< ",";
+                                    cout << diffTTC << endl;
+
+
+                                    bVis = false;
                                     if (bVis)
                                     {
                                         cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
