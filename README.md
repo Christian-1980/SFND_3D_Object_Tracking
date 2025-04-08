@@ -243,7 +243,7 @@ Thus the TTC can be calculated due to the simple const velocity model:
 
 ##### Example 1
 
-<img src="results/Image_49_LiDAR_issue_1.png" width="779" height="414" />
+<img src="results/Image_49_LIDAR_issue_1.png" width="779" height="414" />
 
  - here the issue seems there are still LiDAR points in the Box that have quite a different x-coordinate which means the mean value will be incorrectly shifted to larger ones.
 
@@ -251,7 +251,7 @@ Thus the TTC can be calculated due to the simple const velocity model:
 
  ##### Example 2
 
-<img src="results/Image_54_LiDAR_issue_2.png" width="779" height="414" />
+<img src="results/Image_54_LIDAR_issue_2.png" width="779" height="414" />
 
  - here a negative value is calculated since x_median_curr must be bigger then the previous which is in situations of acceleration; **but** the breaking light is on and the traffic light is red
 
