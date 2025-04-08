@@ -41,6 +41,53 @@ In this final project, you will implement the missing parts in the schematic. To
 
 **Task**: please implement the method "matchBoundingBoxes", which takes as input both the previous and the current data frames and provides as output the ids of the matched regions of interest (i.e. the boxID property)“. Matches must be the ones with the highest number of keypoint correspondences.
 
+**Implementation**
+Pls. see camFusion_Student.cpp 
+```
+void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
+{
+    // A function to match bounding boxes between 2 frames wrt to the keypoint that are in those
+
+    // Store the counts for the matches for each combination in a matrix
+    cv::Mat matching_matrix = cv::Mat::zeros(prevFrame.boundingBoxes.size(), currFrame.boundingBoxes.size(), CV_32S);
+
+    // Now loop over the frames and check the matches plus put the data; queryIdx is the previous, tranIdx the current indices of the 
+    // keypoints from the DMtach Matrix
+    for (const auto &match : matches){
+        const cv::KeyPoint &prev_keypoint = prevFrame.keypoints[match.queryIdx];
+        const cv::KeyPoint &curr_keypoint = currFrame.keypoints[match.trainIdx];
+
+        for (const auto &prev_bbox : prevFrame.boundingBoxes){
+            if (prev_bbox.roi.contains(prev_keypoint.pt)){
+                for (const auto &curr_bbox : currFrame.boundingBoxes){
+                    if (curr_bbox.roi.contains(curr_keypoint.pt)){
+                        matching_matrix.at<int>(prev_bbox.boxID, curr_bbox.boxID) += 1;
+                    }
+                }
+            }
+        }
+    }
+    
+    // loop over the filled matrix, rows and find the max count in second loop over cols
+    for (int i = 0; i < matching_matrix.rows; ++i) {
+        int max_count = 0;
+        int max_id = -1;
+
+        for (int j = 0; j < matching_matrix.cols; ++j) {
+            int current_value = matching_matrix.at<int>(i, j);
+            if (current_value > max_count && current_value > 0) {
+                max_count = current_value;
+                max_id = j;
+            }
+        }
+
+        if (max_id != -1) {
+            bbBestMatches[i] = max_id;
+        }
+    }
+}
+```
+
 ### FP.2 - LiDAR based Time-to-Collision (TTC)
 
 **TASK**: compute the time-to-collision for all matched 3D objects based on Lidar measurements alone. Please take a look at the "Lesson 3: Engineering a Collision Detection System" of this course to revisit the theory behind TTC estimation. Also, please implement the estimation in a way that makes it robust against outliers which might be way too close and thus lead to faulty estimates of the TTC. Please return your TCC to the main function at the end of computeTTCLidar.
@@ -235,6 +282,6 @@ An overview over the first 30 images is illustrated by the following 2 graphics 
 
 Also in the second graph the influence of the detector/ddescriptor combination clearly can be seen thus leaving BRISK behind. Chosing FAST or AKAZE as detector with its here analyzed combinations look fine.
 
-<img src="results/TTC_1_30.png" width="779" height="414" />
+<img src="results/TTC_1_30_Images.png" width="779" height="414" />
 
 <img src="results/Mean_Delta_TTC_over_Dect_Desc.png" width="779" height="414" />
