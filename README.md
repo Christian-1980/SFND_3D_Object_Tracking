@@ -51,6 +51,8 @@ Pls. see camFusion_Student.cpp
 computeTTCLidar(std::vector<LidarPoint>& lidarPointsPrev, std::vector<LidarPoint>& lidarPointsCurr, double frameRate, double& TTC)
 ```
 
+The line width was adjusted to 2.5 [m] like it is used in EUR.
+
 The core function is to filter and extract from the current and previous LiDAR points the x_values that are within the road width.
 
 ```
@@ -192,6 +194,22 @@ Thus the TTC can be calculated due to the simple const velocity model:
 
 #### FP4.1 - Examples for non-plausible LiDAR TTCs
 
+##### Example 1
+
+<img src="results/Image_49_LiDAR_issue_1.png" width="779" height="414" />
+
+ - here the issue seems there are still LiDAR points in the Box that have quite a different x-coordinate which means the mean value will be incorrectly shifted to larger ones.
+
+  - **resolution** would be a better point filter
+
+ ##### Example 2
+
+<img src="results/Image_54_LiDAR_issue_2.png" width="779" height="414" />
+
+ - here a negative value is calculated since x_median_curr must be bigger then the previous which is in situations of acceleration; **but** the breaking light is on and the traffic light is red
+
+  - **resolution** would be a better point filter and refine a better model to calculate the TTC / not using const. velocity
+
 **TASK**:
 
 #### FP4.2 - Performance Evaluation Combonations
@@ -207,5 +225,16 @@ Based on the mid term project I chose to limit myself to the combinations which 
 - FAST/BRIEF
 - FAST/ORB
 - BRISK/BRIEF
-- BRISK/ORB
 - AKAZE/AKAZE
+
+All have used the Brute-Force (BF) method as matcher plus NN for nearest matching.
+
+Individual tabular results can be investigated in the results folder inside results.md file.
+
+An overview over the first 30 images is illustrated by the following 2 graphics out of which it can be seen that the LiDAR produces reliable results for those plus it computes a shorter TTC than cameras, although not huge difference overall. Reasoning is that the approach over the keypoints by frames is more indirect than using xyz-coordinates for calculation.
+
+Also in the second graph the influence of the detector/ddescriptor combination clearly can be seen thus leaving BRISK behind. Chosing FAST or AKAZE as detector with its here analyzed combinations look fine.
+
+<img src="results/TTC_1_30.png" width="779" height="414" />
+
+<img src="results/Mean_Delta_TTC_over_Dect_Desc.png" width="779" height="414" />
